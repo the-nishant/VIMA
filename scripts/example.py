@@ -15,6 +15,8 @@ from gym import Wrapper
 import torch
 import argparse
 
+from transformers import T5Tokenizer, T5Model
+# from gym.wrappers import RecordVideo
 
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
@@ -71,7 +73,8 @@ PLACEHOLDER_TOKENS = [
     AddedToken("{end_scene_3}", **_kwargs),
 ]
 PLACEHOLDERS = [token.content for token in PLACEHOLDER_TOKENS]
-tokenizer = Tokenizer.from_pretrained("t5-base")
+# tokenizer = Tokenizer.from_pretrained("t5-base")
+tokenizer = T5Tokenizer.from_pretrained("t5-base")
 tokenizer.add_tokens(PLACEHOLDER_TOKENS)
 
 
@@ -96,12 +99,14 @@ def main(cfg):
         ),
         bonus_steps=2,
     )
+    # env = RecordVideo(env, 'video', episode_trigger = lambda x: x % 1 == 0)
 
     while True:
         env.global_seed = seed
 
         obs = env.reset()
         env.render()
+        # env.render('rgb_array')
 
         meta_info = env.meta_info
         prompt = env.prompt
@@ -109,6 +114,7 @@ def main(cfg):
         elapsed_steps = 0
         inference_cache = {}
         while True:
+            # print("Elapsed Steps", elapsed_steps)
             if elapsed_steps == 0:
                 prompt_token_type, word_batch, image_batch = prepare_prompt(
                     prompt=prompt, prompt_assets=prompt_assets, views=["front", "top"]
@@ -242,8 +248,10 @@ def main(cfg):
 
 def prepare_prompt(*, prompt: str, prompt_assets: dict, views: list[str]):
     views = sorted(views)
-    encoding = tokenizer.encode(prompt, add_special_tokens=True)
-    prompt_ids, prompt_tokens = encoding.ids, encoding.tokens
+    # encoding = tokenizer.encode(prompt, add_special_tokens=True)
+    # prompt_ids, prompt_tokens = encoding.ids, encoding.tokens
+    prompt_ids = tokenizer.encode(prompt, add_special_tokens=True)
+    prompt_tokens = tokenizer.convert_ids_to_tokens(prompt_ids)
     assert set(prompt_assets.keys()) == set(
         [token[1:-1] for token in prompt_tokens if token in PLACEHOLDERS]
     )
@@ -333,7 +341,7 @@ def prepare_prompt(*, prompt: str, prompt_assets: dict, views: list[str]):
                 }
                 # add mask
                 token["mask"] = {
-                    view: np.ones((n_objs_prompt[view],), dtype=np.bool)
+                    view: np.ones((n_objs_prompt[view],), dtype=np.bool_)
                     for view in views
                 }
                 n_objs_to_pad = {
@@ -353,7 +361,7 @@ def prepare_prompt(*, prompt: str, prompt_assets: dict, views: list[str]):
                         for view in views
                     },
                     "mask": {
-                        view: np.zeros((n_objs_to_pad[view]), dtype=np.bool)
+                        view: np.zeros((n_objs_to_pad[view]), dtype=np.bool_)
                         for view in views
                     },
                 }
