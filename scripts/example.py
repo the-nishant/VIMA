@@ -73,8 +73,8 @@ PLACEHOLDER_TOKENS = [
     AddedToken("{end_scene_3}", **_kwargs),
 ]
 PLACEHOLDERS = [token.content for token in PLACEHOLDER_TOKENS]
-# tokenizer = Tokenizer.from_pretrained("t5-base")
-tokenizer = T5Tokenizer.from_pretrained("t5-base")
+tokenizer = Tokenizer.from_pretrained("t5-base")
+# tokenizer = T5Tokenizer.from_pretrained("t5-base")
 tokenizer.add_tokens(PLACEHOLDER_TOKENS)
 
 
@@ -248,10 +248,11 @@ def main(cfg):
 
 def prepare_prompt(*, prompt: str, prompt_assets: dict, views: list[str]):
     views = sorted(views)
-    # encoding = tokenizer.encode(prompt, add_special_tokens=True)
-    # prompt_ids, prompt_tokens = encoding.ids, encoding.tokens
-    prompt_ids = tokenizer.encode(prompt, add_special_tokens=True)
-    prompt_tokens = tokenizer.convert_ids_to_tokens(prompt_ids)
+    encoding = tokenizer.encode(prompt, add_special_tokens=True)
+    prompt_ids, prompt_tokens = encoding.ids, encoding.tokens
+    # prompt_ids = tokenizer.encode(prompt, add_special_tokens=True)
+    # prompt_tokens = tokenizer.convert_ids_to_tokens(prompt_ids)
+    # import pdb; pdb.set_trace()
     assert set(prompt_assets.keys()) == set(
         [token[1:-1] for token in prompt_tokens if token in PLACEHOLDERS]
     )

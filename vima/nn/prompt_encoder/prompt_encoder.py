@@ -12,7 +12,7 @@ from transformers.models.t5.modeling_t5 import (
     logger,
     T5PreTrainedModel,
     get_device_map,
-    checkpoint,
+#    checkpoint,
     BaseModelOutputWithPastAndCrossAttentions,
     assert_device_map,
     BaseModelOutput,
@@ -386,7 +386,7 @@ class T5Stack(T5PreTrainedModel):
 
                     return custom_forward
 
-                layer_outputs = checkpoint(
+                layer_outputs = self._gradient_checkpointing_func(
                     create_custom_forward(layer_module),
                     hidden_states,
                     extended_attention_mask,
